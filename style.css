@@ -1,0 +1,30 @@
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #000;
+}
+
+.game-container {
+    width: 90%;
+    height: 90%;
+    max-width: 800px;
+    max-height: 600px;
+    border: 2px solid #fff;
+    overflow: hidden;
+}
+
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+    grid-template-rows: repeat(auto-fit, minmax(40px, 1fr));
+    gap: 2px;
+    background-color: #333;
+}
+
+.game-board div {
+    background-color: #fff;
+}
