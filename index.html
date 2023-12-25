@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Airplane Battle</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+        }
+
+        canvas {
+            border: 2px solid #fff;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="480" height="640"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height - 50,
+            width: 50,
+            height: 50,
+            speed: 5,
+            isFiring: false,
+            health: 3
+        };
+
+        const bullets = [];
+        const enemies = [];
+        let score = 0;
+        let level = 1;
+
+        function drawPlayer() {
+            ctx.fillStyle = "#00f";
+            ctx.fillRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height);
+        }
+
+        function movePlayer(direction) {
+            if (direction === "left" && player.x > player.width / 2) {
+                player.x -= player.speed;
+            } else if (direction === "right" && player.x < canvas.width - player.width / 2) {
+                player.x += player.speed;
+            }
+        }
+
+        function fireBullet() {
+            bullets.push({
+                x: player.x,
+                y: player.y - player.height,
+                width: 5,
+                height: 20,
+                speed: 10
+            });
+        }
+
+        function moveBullets() {
+            bullets.forEach(bullet => {
+                bullet.y -= bullet.speed;
+            });
+        }
+
+        function drawBullets() {
+            bullets.forEach(bullet => {
+                ctx.fillStyle = "#f00";
+                ctx.fillRect(bullet.x - bullet.width / 2, bullet.y - bullet.height / 2, bullet.width, bullet.height);
+            });
+        }
+
+        function createEnemy() {
+            const enemy = {
+                x: Math.random() * canvas.width,
+                y: 0,
+                width: 50,
+                height: 50,
+                speed: Math.random() * (level * 0.5) + 1
+            };
+            enemies.push(enemy);
+        }
+
+        function moveEnemies() {
+            enemies.forEach(enemy => {
+                enemy.y += enemy.speed;
+            });
+        }
+
+        function drawEnemies() {
+            enemies.forEach(enemy => {
+                ctx.fillStyle = "#f00";
+                ctx.fillRect(enemy.x - enemy.width / 2, enemy.y - enemy.height / 2, enemy.width, enemy.height);
+            });
+        }
+
+        function checkCollision(obj1, obj2) {
+            return obj1.x - obj1.width / 2 < obj2.x + obj2.width / 2 &&
+                obj1.x + obj1.width / 2 > obj2.x - obj2.width / 2 &&
+                obj1.y - obj1.height / 2 < obj2.y + obj2.height / 2 &&
+                obj1.y + obj1.height / 2 > obj2.y - obj2.height / 2;
+        }
+
+        function checkPlayerEnemyCollision() {
+            enemies.forEach(enemy => {
+                if (checkCollision(player, enemy)) {
+                    player.health--;
+                    resetGame();
+                }
+            });
+        }
+
+        function checkBulletEnemyCollision() {
+            bullets.forEach(bullet => {
+                enemies.forEach(enemy => {
+                    if (checkCollision(bullet, enemy)) {
+                        score++;
+                        explodeEnemy(enemy);
+                        bullets.splice(bullets.indexOf(bullet), 1);
+                        enemies.splice(enemies.indexOf(enemy), 1);
+                    }
+                });
+            });
+        }
+
+        function explodeEnemy(enemy) {
+            // Add explosion effect
+            ctx.fillStyle = "#ff0";
+            ctx.fillRect(enemy.x - enemy.width / 2, enemy.y - enemy.height / 2, enemy.width, enemy.height);
+        }
+
+        function updateScore() {
+            ctx.fillStyle = "#fff";
+            ctx.font = "20px Arial";
+            ctx.fillText("Score: " + score, 10, 30);
+        }
+
+        function updateHealth() {
+            ctx.fillStyle = "#fff";
+            ctx.font = "20px Arial";
+            ctx.fillText("Health: " + player.health, canvas.width - 100, 30);
+        }
+
+        function updateLevel() {
+            ctx.fillStyle = "#fff";
+            ctx.font = "20px Arial";
+            ctx.fillText("Level: " + level, canvas.width / 2 - 40, 30);
+        }
+
+        function resetGame() {
+            if (player.health === 0) {
+                score = 0;
+                player.health = 3;
+                bullets.splice(0);
+                enemies.splice(0);
+                level = 1;
+            }
+        }
+
+        function update() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPlayer();
+            moveBullets();
+            drawBullets();
+            moveEnemies();
+            drawEnemies();
+            checkPlayerEnemyCollision();
+            checkBulletEnemyCollision();
+            updateScore();
+            updateHealth();
+            updateLevel();
+
+            if (enemies.length === 0) {
+                level++;
+                for (i = 0; i < level; i++) {
+                    setTimeout(createEnemy, i * 1000);
+                }
+            }
+        }
+
+        function keyDownHandler(event) {
+            if (event.key === "ArrowLeft") {
+                movePlayer("left");
+            } else if (event.key === "ArrowRight") {
+                movePlayer("right");
+            } else if (event.key === " ") {
+                fireBullet();
+            }
+        }
+
+        document.addEventListener("keydown", keyDownHandler);
+
+        setInterval(update, 1000 / 60); // 60 FPS
+    </script>
+</body>
+</html>
